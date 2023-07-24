@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Personio.Api", "Personio.Api\Personio.Api.csproj", "{051ED381-8CAA-40E1-A7A9-EA9194EC6494}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Personio.Api.DependencyInjection", "Personio.Api.DependencyInjection\Personio.Api.DependencyInjection.csproj", "{CAD212AC-0434-4689-B60E-18E826A63680}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{051ED381-8CAA-40E1-A7A9-EA9194EC6494}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{051ED381-8CAA-40E1-A7A9-EA9194EC6494}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{051ED381-8CAA-40E1-A7A9-EA9194EC6494}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{051ED381-8CAA-40E1-A7A9-EA9194EC6494}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAD212AC-0434-4689-B60E-18E826A63680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAD212AC-0434-4689-B60E-18E826A63680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAD212AC-0434-4689-B60E-18E826A63680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAD212AC-0434-4689-B60E-18E826A63680}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1AF030B6-50C0-4020-9F82-9518A1B27B37}
+	EndGlobalSection
+EndGlobal
