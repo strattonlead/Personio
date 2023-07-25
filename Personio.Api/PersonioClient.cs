@@ -7,8 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Personio.Api
 {
@@ -39,7 +39,7 @@ namespace Personio.Api
             }
         }
 
-        private HttpClient _postCilent
+        private HttpClient _postClient
         {
             get
             {
@@ -104,19 +104,19 @@ namespace Personio.Api
             var url = $"https://api.personio.de/v1/company/employees?limit={request.Limit}&offset={request.Offset}";
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
-                url += $"&email={UrlEncoder.Default.Encode(request.Email)}";
+                url += $"&email={HttpUtility.UrlEncode(request.Email)}";
             }
 
             if (request.UpdatedSince.HasValue)
             {
-                url += $"&updated_since={UrlEncoder.Default.Encode(request.UpdatedSince.Value.ToString(""))}";
+                url += $"&updated_since={HttpUtility.UrlEncode(request.UpdatedSince.Value.ToString(""))}";
             }
 
             if (request.Attributes != null && request.Attributes.Any())
             {
                 foreach (var attribute in request.Attributes)
                 {
-                    url += $"&attributes[]={UrlEncoder.Default.Encode(attribute)}";
+                    url += $"&attributes[]={HttpUtility.UrlEncode(attribute)}";
                 }
             }
 
@@ -133,7 +133,7 @@ namespace Personio.Api
         public async Task<CreateResponse> CreateEmployeeAsync(CreateEmployeeRequest request)
         {
             var content = new StringContent(JsonConvert.SerializeObject(request));
-            var response = await _postCilent.PostAsync("https://api.personio.de/v1/company/employees", content);
+            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/employees", content);
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<CreateResponse>(result);
         }
@@ -148,7 +148,12 @@ namespace Personio.Api
         public async Task<UpdateResponse> UpdateEmployeeAsync(UpdateEmployeeRequest request)
         {
             var content = new StringContent(JsonConvert.SerializeObject(request));
-            var response = await _postCilent.PatchAsync($"https://api.personio.de/v1/company/employees/{request.Id}", content);
+            //var response = await _postClient.PatchAsync($"https://api.personio.de/v1/company/employees/{request.Id}", content);
+
+            var message = new HttpRequestMessage(new HttpMethod("PATCH"), $"https://api.personio.de/v1/company/employees/{request.Id}");
+            message.Content = content;
+            var response = await _postClient.SendAsync(message);
+
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<UpdateResponse>(result);
         }
@@ -237,7 +242,7 @@ namespace Personio.Api
         public async Task<CreateResponse> CreateAttendancesAsync(AddAttendancesRequest request)
         {
             var content = new StringContent(JsonConvert.SerializeObject(request));
-            var response = await _postCilent.PostAsync("https://api.personio.de/v1/company/attendances", content);
+            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/attendances", content);
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<CreateResponse>(result);
         }
@@ -317,7 +322,7 @@ namespace Personio.Api
                 { "comment", request.Comment },
                 { "skip_approval", request.SkipApproval.ToString().ToLower() },
             });
-            var response = await _postCilent.PostAsync("https://api.personio.de/v1/company/time-offs", content);
+            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/time-offs", content);
             var result = await response.Content.ReadAsStringAsync();
 #warning TODO hier das model checken was da zurück kommt
             return JsonConvert.DeserializeObject<CreateResponse>(result);
@@ -361,8 +366,8 @@ namespace Personio.Api
             var url = $"https://api.personio.de/v1/company/absence-periods" +
                 $"?start_date={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
                 $"&end_date={request.EndDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&updated_from={UrlEncoder.Default.Encode(request.UpdatedFrom.ToString(Constants.DATE_TIME_FORMAT))}" +
-                $"&updated_to={UrlEncoder.Default.Encode(request.UpdatedTo.ToString(Constants.DATE_TIME_FORMAT))}" +
+                $"&updated_from={HttpUtility.UrlEncode(request.UpdatedFrom.ToString(Constants.DATE_TIME_FORMAT))}" +
+                $"&updated_to={HttpUtility.UrlEncode(request.UpdatedTo.ToString(Constants.DATE_TIME_FORMAT))}" +
                 $"&limit=1&offset=1";
 
             if (request.EmployeeIds != null && request.EmployeeIds.Any())
@@ -426,7 +431,7 @@ namespace Personio.Api
             }
 
             var content = new FormUrlEncodedContent(parameters);
-            var response = await _postCilent.PostAsync("https://api.personio.de/v1/company/absence-periods", content);
+            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/absence-periods", content);
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();
 #warning TODO result anschauen

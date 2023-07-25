@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Personio.Api.Configuration;
 using System;
 
 namespace Personio.Api.DependencyInjection
