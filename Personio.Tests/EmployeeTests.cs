@@ -7,7 +7,7 @@ namespace Personio.Tests
     public class EmployeeTests : BaseUnitTest
     {
         [Fact]
-        public void AuthTest()
+        public void GetEmployeesTest()
         {
             var request = new GetEmployeesRequest();
             var employees = PersonioClient.GetEmployeesAsync(request).Result;

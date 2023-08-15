@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Personio.Api", "Personio.Ap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Personio.Api.DependencyInjection", "Personio.Api.DependencyInjection\Personio.Api.DependencyInjection.csproj", "{CAD212AC-0434-4689-B60E-18E826A63680}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Personio.Tests", "Personio.Tests\Personio.Tests.csproj", "{0D046A4A-CD3E-4914-999B-956E8DBA7D51}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Personio.Tests", "Personio.Tests\Personio.Tests.csproj", "{0D046A4A-CD3E-4914-999B-956E8DBA7D51}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
