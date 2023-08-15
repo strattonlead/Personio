@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Request
 {
     public class AddAttendancesRequest
     {

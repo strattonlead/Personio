@@ -2,7 +2,7 @@
 using Personio.Api.Util;
 using System;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Request
 {
     public class CreateAbsencePeriodRequest
     {
@@ -19,10 +19,10 @@ namespace Personio.Api.Models
         public DateTime EndDate { get; set; }
 
         [JsonProperty(PropertyName = "start_date"), JsonConverter(typeof(TimeSpanConverter))]
-        public TimeSpan? StartTime { get; set; }
+        public TimeSpan StartTime { get; set; }
 
         [JsonProperty(PropertyName = "end_date"), JsonConverter(typeof(TimeSpanConverter))]
-        public TimeSpan? EndTime { get; set; }
+        public TimeSpan EndTime { get; set; }
 
         [JsonProperty(PropertyName = "half_day_start")]
         public bool HalfDayStart { get; set; }

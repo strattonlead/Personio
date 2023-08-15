@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Response
 {
     public class GetTimeOffResponse
     {

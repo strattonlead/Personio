@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Request
 {
     public class GetEmployeesRequest
     {
         /// <summary>
         /// Minvalue = 1
         /// </summary>
-        public int Limit { get; set; }
+        public int Limit { get; set; } = 10;
 
         /// <summary>
         /// Minvalue = 0

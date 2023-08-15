@@ -2,7 +2,7 @@
 using Personio.Api.Util;
 using System;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Request
 {
     public class CreateTimeOffRequest
     {

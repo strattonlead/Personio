@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Response
 {
-    public class AuthResponse
+    public class DeleteResponse
     {
         [JsonProperty(PropertyName = "success")]
         public bool Success { get; set; }
 
         [JsonProperty(PropertyName = "data")]
-        public TokenData Data { get; set; }
+        public DeleteData Data { get; set; }
     }
 }

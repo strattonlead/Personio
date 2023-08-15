@@ -2,6 +2,10 @@
 using Personio.Api.Common;
 using Personio.Api.Configuration;
 using Personio.Api.Models;
+using Personio.Api.Models.Attributes;
+using Personio.Api.Models.Request;
+using Personio.Api.Models.Response;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +23,8 @@ namespace Personio.Api
         private readonly PersonioClientOptions _options;
 
         private string _token { get; set; }
+        private DateTime? _tokenValidUntilUtc { get; set; }
+        private bool _isValidToken => !string.IsNullOrWhiteSpace(_token) && DateTime.UtcNow < _tokenValidUntilUtc;
 
         private HttpClient _getClient
         {
@@ -34,20 +40,18 @@ namespace Personio.Api
                 {
                     client.DefaultRequestHeaders.Add("X-Personio-App-ID", _options.AppId);
                 }
+
+                if (!_isValidToken)
+                {
+                    _token = AuthAsync().Result;
+                }
+
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
                 return client;
             }
         }
 
-        private HttpClient _postClient
-        {
-            get
-            {
-                var client = _getClient;
-                client.DefaultRequestHeaders.Add("content-type", "application/json");
-                return client;
-            }
-        }
+        private HttpClient _postClient => _getClient;
 
         #endregion
 
@@ -81,13 +85,15 @@ namespace Personio.Api
         {
             var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
-            client.DefaultRequestHeaders.Add("content-type", "application/json");
+
             var content = new StringContent(JsonConvert.SerializeObject(request));
+            content.Headers.ContentType.MediaType = "application/json";
 
             var response = await client.PostAsync("https://api.personio.de/v1/auth", content);
             var result = await response.Content.ReadAsStringAsync();
             var authResponse = JsonConvert.DeserializeObject<AuthResponse>(result);
             _token = authResponse.Data?.Token;
+            _tokenValidUntilUtc = DateTime.UtcNow.AddDays(1).AddMinutes(-1);
             return _token;
         }
 
@@ -99,7 +105,7 @@ namespace Personio.Api
         /// https://developer.personio.de/reference/get_company-employees
         /// </summary>
         /// <returns>List Company Employees</returns>
-        public async Task GetEmployeesAsync(GetEmployeesRequest request)
+        public async Task<List<Employee>> GetEmployeesAsync(GetEmployeesRequest request)
         {
             var url = $"https://api.personio.de/v1/company/employees?limit={request.Limit}&offset={request.Offset}";
             if (!string.IsNullOrWhiteSpace(request.Email))
@@ -121,6 +127,14 @@ namespace Personio.Api
             }
 
             var result = await _getClient.GetStringAsync(url);
+            var response = JsonConvert.DeserializeObject<EmployeeResponse>(result);
+            return response.Data.Select(x => new Employee()
+            {
+                Id = x.Attributes.Id,
+                Email = x.Attributes.Email,
+                FirstName = x.Attributes.FirstName,
+                LastName = x.Attributes.LastName
+            }).ToList();
         }
 
         /// <summary>
@@ -271,10 +285,11 @@ namespace Personio.Api
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<GetTimeOffTypesResponse> GetTimeOffTypesAsync(GetTimeOffTypesRequest request)
+        public async Task<List<TimeOffType>> GetTimeOffTypesAsync(GetTimeOffTypesRequest request)
         {
             var result = await _getClient.GetStringAsync($"https://api.personio.de/v1/company/time-off-types?limit={request.Limit}&offset={request.Offset}");
-            return JsonConvert.DeserializeObject<GetTimeOffTypesResponse>(result);
+            var response = JsonConvert.DeserializeObject<GetTimeOffTypesResponse>(result);
+            return response.Data.Select(x => x.Attributes.ToTimeOffType()).ToList();
         }
 
         /// <summary>
@@ -284,13 +299,28 @@ namespace Personio.Api
         /// can be paginated and filtered by period and/or specific employee/employees.
         /// The result contains a list of absence periods.
         /// </summary>
-        public async Task GetTimeOffsAsync(GetTimeOffsRequest request)
+        public async Task<List<TimeOffPeriod>> GetTimeOffsAsync(GetTimeOffsRequest request)
         {
-            var url = $"https://api.personio.de/v1/company/time-offs?start_date={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&end_date={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&updated_from={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&updated_to={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&limit={request.Limit}&offset={request.Offset}";
+            var url = $"https://api.personio.de/v1/company/time-offs?limit={request.Limit}&offset={request.Offset}";
+            if (request.StartDate.HasValue)
+            {
+                url += $"&start_date={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+            }
+
+            if (request.StartDate.HasValue)
+            {
+                url += $"&end_date={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+            }
+
+            if (request.StartDate.HasValue)
+            {
+                url += $"&updated_from={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+            }
+
+            if (request.StartDate.HasValue)
+            {
+                url += $"&updated_to={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+            }
 
             if (request.EmployeeIds != null && request.EmployeeIds.Any())
             {
@@ -301,7 +331,8 @@ namespace Personio.Api
             }
 
             var result = await _getClient.GetStringAsync(url);
-#warning TODO hier das model checken was da zurück kommt
+            var response = JsonConvert.DeserializeObject<GetTimeOffPeriodsResponse>(result);
+            return response.Data.Select(x => x.Attributes.ToTimeOffPeriod()).ToList();
         }
 
         /// <summary>
@@ -309,7 +340,7 @@ namespace Personio.Api
         /// 
         /// Adds absence data for absence types tracked in days.
         /// </summary>
-        public async Task<CreateResponse> CreateTimeOffAsync(CreateTimeOffRequest request)
+        public async Task<CreateResponse<TimeOffPeriod>> CreateTimeOffAsync(CreateTimeOffRequest request)
         {
             var content = new FormUrlEncodedContent(new Dictionary<string, string>
             {
@@ -322,10 +353,15 @@ namespace Personio.Api
                 { "comment", request.Comment },
                 { "skip_approval", request.SkipApproval.ToString().ToLower() },
             });
+
             var response = await _postClient.PostAsync("https://api.personio.de/v1/company/time-offs", content);
-            var result = await response.Content.ReadAsStringAsync();
-#warning TODO hier das model checken was da zurück kommt
-            return JsonConvert.DeserializeObject<CreateResponse>(result);
+            var json = await response.Content.ReadAsStringAsync();
+            var createResponse = JsonConvert.DeserializeObject<CreateResponse<TypeAndAttributesObject<TimeOffPeriodAttributes>>>(json);
+            if (!createResponse.Success)
+            {
+                return CreateResponse.FromError<TimeOffPeriod>(createResponse);
+            }
+            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod());
         }
 
         /// <summary>
@@ -418,17 +454,9 @@ namespace Personio.Api
                 { "half_day_end", request.HalfDayEnd.ToString().ToLower() },
                 { "comment", request.Comment },
                 { "skip_approval", request.SkipApproval.ToString().ToLower() },
+                { "start_time", request.StartTime.ToString(Constants.TIME_FORMAT) },
+                { "end_time", request.EndTime.ToString(Constants.TIME_FORMAT) },
             };
-
-            if (request.StartTime.HasValue)
-            {
-                parameters.Add("start_time", request.StartTime.Value.ToString(Constants.TIME_FORMAT));
-            }
-
-            if (request.EndTime.HasValue)
-            {
-                parameters.Add("end_time", request.EndTime.Value.ToString(Constants.TIME_FORMAT));
-            }
 
             var content = new FormUrlEncodedContent(parameters);
             var response = await _postClient.PostAsync("https://api.personio.de/v1/company/absence-periods", content);

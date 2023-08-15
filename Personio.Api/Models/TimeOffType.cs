@@ -50,7 +50,7 @@ namespace Personio.Api.Models
         /// disabled optional required
         /// </summary>
         [JsonProperty(PropertyName = "substitute_option")]
-        public int SubstituteOption { get; set; }
+        public string SubstituteOption { get; set; }
 
         [JsonProperty(PropertyName = "approval_required")]
         public bool ApprovalRequired { get; set; }

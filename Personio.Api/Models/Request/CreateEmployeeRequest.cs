@@ -1,12 +1,9 @@
 ﻿using Newtonsoft.Json;
 
-namespace Personio.Api.Models
+namespace Personio.Api.Models.Request
 {
-    public class UpdateEmployeeRequest
+    public class CreateEmployeeRequest
     {
-        [JsonIgnore]
-        public int Id { get; set; }
-
         [JsonProperty(PropertyName = "employee")]
         public Employee Employee { get; set; }
     }

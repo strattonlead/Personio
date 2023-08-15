@@ -1,8 +1,8 @@
-﻿namespace Personio.Api.Models
+﻿namespace Personio.Api.Models.Request
 {
     public class GetTimeOffTypesRequest
     {
-        public int Limit { get; set; }
+        public int Limit { get; set; } = 200;
         public int Offset { get; set; }
     }
 }
