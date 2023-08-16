@@ -26,8 +26,8 @@ namespace Personio.Tests
         public void CreateTimeOffTest()
         {
             /* Geht nur STundenbasiert! Steht falsch in der API mit den Required Parametern!! */
-            var employee = PersonioClient.GetEmployeesAsync(new GetEmployeesRequest()).Result.FirstOrDefault();
-            var timeOffType = PersonioClient.GetTimeOffsAsync(new GetTimeOffsRequest()).Result.FirstOrDefault();
+            var employee = PersonioClient.GetEmployeesAsync(new GetEmployeesRequest()).Result.PagedList.Data.FirstOrDefault();
+            var timeOffType = PersonioClient.GetTimeOffsAsync(new GetTimeOffsRequest()).Result.PagedList.Data.FirstOrDefault();
             var result = PersonioClient.CreateTimeOffAsync(new CreateTimeOffRequest()
             {
                 StartDate = DateTime.UtcNow.AddDays(16),

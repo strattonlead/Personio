@@ -1,14 +1,10 @@
-﻿using Newtonsoft.Json;
-using Personio.Api.Models.Attributes;
+﻿using Personio.Api.Models.Attributes;
+using System;
 
 namespace Personio.Api.Models.Response
 {
-    public class GetTimeOffPeriodsResponse
+    public class GetTimeOffPeriodsResponse : BasePagedListResponse<TimeOffPeriodAttributes, TimeOffPeriod>
     {
-        [JsonProperty(PropertyName = "success")]
-        public bool Success { get; set; }
-
-        [JsonProperty(PropertyName = "data")]
-        public TypeAndAttributesObject<TimeOffPeriodAttributes>[] Data { get; set; }
+        protected override Func<TimeOffPeriodAttributes, TimeOffPeriod> Converter => x => x.ToTimeOffPeriod();
     }
 }

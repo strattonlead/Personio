@@ -105,7 +105,7 @@ namespace Personio.Api
         /// https://developer.personio.de/reference/get_company-employees
         /// </summary>
         /// <returns>List Company Employees</returns>
-        public async Task<List<Employee>> GetEmployeesAsync(GetEmployeesRequest request)
+        public async Task<PagedListResponse<Employee>> GetEmployeesAsync(GetEmployeesRequest request)
         {
             var url = $"https://api.personio.de/v1/company/employees?limit={request.Limit}&offset={request.Offset}";
             if (!string.IsNullOrWhiteSpace(request.Email))
@@ -126,15 +126,7 @@ namespace Personio.Api
                 }
             }
 
-            var result = await _getClient.GetStringAsync(url);
-            var response = JsonConvert.DeserializeObject<EmployeeResponse>(result);
-            return response.Data.Select(x => new Employee()
-            {
-                Id = x.Attributes.Id,
-                Email = x.Attributes.Email,
-                FirstName = x.Attributes.FirstName,
-                LastName = x.Attributes.LastName
-            }).ToList();
+            return await _handlePagedListRequest<Employee, GetEmployeesResponse>(url);
         }
 
         /// <summary>
@@ -211,67 +203,67 @@ namespace Personio.Api
 
         #region Attendances
 
-        /// <summary>
-        /// https://developer.personio.de/reference/get_company-attendances
-        /// 
-        /// Fetch attendance data for the company employees. The result can be
-        /// paginated and filtered by period, the date and/or time they were 
-        /// updated, and/or specific employee/employees. The result 
-        /// contains a list of attendances.
-        /// </summary>
-        public async Task GetAttendancesAsync(GetAttendencesRequest request)
-        {
-            var url = $"https://api.personio.de/v1/company/attendances?start_date={request.StartDate.ToString(Constants.DATE_FORMAT)}&end_date={request.EndDate.ToString(Constants.DATE_FORMAT)}&limit={request.Limit}&offset={request.Offset}";
-            if (request.UpdatedFrom.HasValue)
-            {
-                url += $"updated_from={request.UpdatedFrom.Value.ToString(Constants.DATE_FORMAT)}";
-            }
+        //        /// <summary>
+        //        /// https://developer.personio.de/reference/get_company-attendances
+        //        /// 
+        //        /// Fetch attendance data for the company employees. The result can be
+        //        /// paginated and filtered by period, the date and/or time they were 
+        //        /// updated, and/or specific employee/employees. The result 
+        //        /// contains a list of attendances.
+        //        /// </summary>
+        //        public async Task GetAttendancesAsync(GetAttendencesRequest request)
+        //        {
+        //            var url = $"https://api.personio.de/v1/company/attendances?start_date={request.StartDate.ToString(Constants.DATE_FORMAT)}&end_date={request.EndDate.ToString(Constants.DATE_FORMAT)}&limit={request.Limit}&offset={request.Offset}";
+        //            if (request.UpdatedFrom.HasValue)
+        //            {
+        //                url += $"updated_from={request.UpdatedFrom.Value.ToString(Constants.DATE_FORMAT)}";
+        //            }
 
-            if (request.UpdatedTo.HasValue)
-            {
-                url += $"updated_to={request.UpdatedTo.Value.ToString(Constants.DATE_FORMAT)}";
-            }
+        //            if (request.UpdatedTo.HasValue)
+        //            {
+        //                url += $"updated_to={request.UpdatedTo.Value.ToString(Constants.DATE_FORMAT)}";
+        //            }
 
-            if (request.EmployeeIds != null && request.EmployeeIds.Any())
-            {
-                foreach (var employeeId in request.EmployeeIds)
-                {
-                    url += $"&employees[]={employeeId}";
-                }
-            }
+        //            if (request.EmployeeIds != null && request.EmployeeIds.Any())
+        //            {
+        //                foreach (var employeeId in request.EmployeeIds)
+        //                {
+        //                    url += $"&employees[]={employeeId}";
+        //                }
+        //            }
 
-            var result = await _getClient.GetStringAsync(url);
-#warning TODO schauen was da als datentyp zurück kommt
-        }
+        //            var result = await _getClient.GetStringAsync(url);
+        //#warning TODO schauen was da als datentyp zurück kommt
+        //        }
 
-        /// <summary>
-        /// https://developer.personio.de/reference/post_company-attendances
-        /// 
-        /// This endpoint is responsible for adding attendance data for the 
-        /// company employees. It is possible to add attendances for one or many 
-        /// employees at the same time. The payload sent on the request should 
-        /// be a list of attendance periods, in the form of an array containing 
-        /// attendance period objects.
-        /// </summary>
-        public async Task<CreateResponse> CreateAttendancesAsync(AddAttendancesRequest request)
-        {
-            var content = new StringContent(JsonConvert.SerializeObject(request));
-            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/attendances", content);
-            var result = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<CreateResponse>(result);
-        }
+        //        /// <summary>
+        //        /// https://developer.personio.de/reference/post_company-attendances
+        //        /// 
+        //        /// This endpoint is responsible for adding attendance data for the 
+        //        /// company employees. It is possible to add attendances for one or many 
+        //        /// employees at the same time. The payload sent on the request should 
+        //        /// be a list of attendance periods, in the form of an array containing 
+        //        /// attendance period objects.
+        //        /// </summary>
+        //        public async Task<CreateResponse> CreateAttendancesAsync(AddAttendancesRequest request)
+        //        {
+        //            var content = new StringContent(JsonConvert.SerializeObject(request));
+        //            var response = await _postClient.PostAsync("https://api.personio.de/v1/company/attendances", content);
+        //            var result = await response.Content.ReadAsStringAsync();
+        //            return JsonConvert.DeserializeObject<CreateResponse>(result);
+        //        }
 
-        /// <summary>
-        /// https://developer.personio.de/reference/delete_company-attendances-id
-        /// 
-        /// This endpoint is responsible for deleting attendance data for the company employees.
-        /// </summary>
-        public async Task<DeleteResponse> DeleteAttendancesAsync(int id, bool skipAPproval = true)
-        {
-            var response = await _getClient.DeleteAsync($"https://api.personio.de/v1/company/attendances/{id}?skip_approval={skipAPproval}");
-            var result = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<DeleteResponse>(result);
-        }
+        //        /// <summary>
+        //        /// https://developer.personio.de/reference/delete_company-attendances-id
+        //        /// 
+        //        /// This endpoint is responsible for deleting attendance data for the company employees.
+        //        /// </summary>
+        //        public async Task<DeleteResponse> DeleteAttendancesAsync(int id, bool skipAPproval = true)
+        //        {
+        //            var response = await _getClient.DeleteAsync($"https://api.personio.de/v1/company/attendances/{id}?skip_approval={skipAPproval}");
+        //            var result = await response.Content.ReadAsStringAsync();
+        //            return JsonConvert.DeserializeObject<DeleteResponse>(result);
+        //        }
 
         #endregion
 
@@ -285,11 +277,10 @@ namespace Personio.Api
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public async Task<List<TimeOffType>> GetTimeOffTypesAsync(GetTimeOffTypesRequest request)
+        public async Task<PagedListResponse<TimeOffType>> GetTimeOffTypesAsync(GetTimeOffTypesRequest request)
         {
-            var result = await _getClient.GetStringAsync($"https://api.personio.de/v1/company/time-off-types?limit={request.Limit}&offset={request.Offset}");
-            var response = JsonConvert.DeserializeObject<GetTimeOffTypesResponse>(result);
-            return response.Data.Select(x => x.Attributes.ToTimeOffType()).ToList();
+            var url = $"https://api.personio.de/v1/company/time-off-types?limit={request.Limit}&offset={request.Offset}";
+            return await _handlePagedListRequest<TimeOffType, GetTimeOffTypesResponse>(url);
         }
 
         /// <summary>
@@ -299,7 +290,7 @@ namespace Personio.Api
         /// can be paginated and filtered by period and/or specific employee/employees.
         /// The result contains a list of absence periods.
         /// </summary>
-        public async Task<List<TimeOffPeriod>> GetTimeOffsAsync(GetTimeOffsRequest request)
+        public async Task<PagedListResponse<TimeOffPeriod>> GetTimeOffsAsync(GetTimeOffsRequest request)
         {
             var url = $"https://api.personio.de/v1/company/time-offs?limit={request.Limit}&offset={request.Offset}";
             if (request.StartDate.HasValue)
@@ -330,9 +321,7 @@ namespace Personio.Api
                 }
             }
 
-            var result = await _getClient.GetStringAsync(url);
-            var response = JsonConvert.DeserializeObject<GetTimeOffPeriodsResponse>(result);
-            return response.Data.Select(x => x.Attributes.ToTimeOffPeriod()).ToList();
+            return await _handlePagedListRequest<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
         }
 
         /// <summary>
@@ -476,6 +465,34 @@ namespace Personio.Api
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<DeleteResponse>(result);
+        }
+
+        #endregion
+
+        #region Helpers
+
+        private async Task<PagedListResponse<TItem>> _handlePagedListRequest<TItem, TResponse>(string url)
+            where TResponse : BasePagedListResponse<TItem>
+        {
+            var response = await _getClient.GetAsync(url);
+            var responseContent = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorData = JsonConvert.DeserializeObject<ErrorResponse>(responseContent);
+                return new PagedListResponse<TItem>()
+                {
+                    StatusCode = response.StatusCode,
+                    ReasonPhrase = response.ReasonPhrase,
+                    Error = errorData.Error
+                };
+            }
+            var data = JsonConvert.DeserializeObject<TResponse>(responseContent);
+            return new PagedListResponse<TItem>()
+            {
+                StatusCode = response.StatusCode,
+                ReasonPhrase = response.ReasonPhrase,
+                PagedList = data.ToPagedList()
+            };
         }
 
         #endregion

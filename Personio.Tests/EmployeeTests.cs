@@ -1,5 +1,6 @@
 using Personio.Api;
 using Personio.Api.Models.Request;
+using System.Net;
 using Xunit;
 
 namespace Personio.Tests
@@ -11,7 +12,18 @@ namespace Personio.Tests
         {
             var request = new GetEmployeesRequest();
             var employees = PersonioClient.GetEmployeesAsync(request).Result;
-            Assert.Equal(10, employees.Count);
+            Assert.Equal(HttpStatusCode.OK, employees.StatusCode);
+            Assert.Equal(10, employees.PagedList.Data.Count);
+        }
+
+        [Fact]
+        public void GetEmployeesErrorTest()
+        {
+            var request = new GetEmployeesRequest() { Limit = 1000 };
+            var employees = PersonioClient.GetEmployeesAsync(request).Result;
+
+            Assert.NotEqual(HttpStatusCode.OK, employees.StatusCode);
+            Assert.Null(employees.PagedList);
         }
     }
 }
