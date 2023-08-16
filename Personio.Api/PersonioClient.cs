@@ -11,8 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace Personio.Api
 {
@@ -110,19 +110,19 @@ namespace Personio.Api
             var url = $"https://api.personio.de/v1/company/employees?limit={request.Limit}&offset={request.Offset}";
             if (!string.IsNullOrWhiteSpace(request.Email))
             {
-                url += $"&email={HttpUtility.UrlEncode(request.Email)}";
+                url += $"&email={UrlEncoder.Default.Encode(request.Email)}";
             }
 
             if (request.UpdatedSince.HasValue)
             {
-                url += $"&updated_since={HttpUtility.UrlEncode(request.UpdatedSince.Value.ToString(""))}";
+                url += $"&updated_since={UrlEncoder.Default.Encode(request.UpdatedSince.Value.ToString(""))}";
             }
 
             if (request.Attributes != null && request.Attributes.Any())
             {
                 foreach (var attribute in request.Attributes)
                 {
-                    url += $"&attributes[]={HttpUtility.UrlEncode(attribute)}";
+                    url += $"&attributes[]={UrlEncoder.Default.Encode(attribute)}";
                 }
             }
 
@@ -391,8 +391,8 @@ namespace Personio.Api
             var url = $"https://api.personio.de/v1/company/absence-periods" +
                 $"?start_date={request.StartDate.ToString(Constants.DATE_FORMAT)}" +
                 $"&end_date={request.EndDate.ToString(Constants.DATE_FORMAT)}" +
-                $"&updated_from={HttpUtility.UrlEncode(request.UpdatedFrom.ToString(Constants.DATE_TIME_FORMAT))}" +
-                $"&updated_to={HttpUtility.UrlEncode(request.UpdatedTo.ToString(Constants.DATE_TIME_FORMAT))}" +
+                $"&updated_from={UrlEncoder.Default.Encode(request.UpdatedFrom.ToString(Constants.DATE_TIME_FORMAT))}" +
+                $"&updated_to={UrlEncoder.Default.Encode(request.UpdatedTo.ToString(Constants.DATE_TIME_FORMAT))}" +
                 $"&limit=1&offset=1";
 
             if (request.EmployeeIds != null && request.EmployeeIds.Any())
