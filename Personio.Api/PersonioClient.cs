@@ -130,7 +130,7 @@ namespace Personio.Api
 
         #endregion
 
-        #region Employees
+        #region Employees Async
 
         /// <summary>
         /// https://developer.personio.de/reference/get_company-employees
@@ -330,6 +330,20 @@ namespace Personio.Api
         }
 
         /// <summary>
+        /// https://developer.personio.de/reference/get_company-time-off-types
+        /// 
+        /// Provides a list of absence types for absences tracked in days and 
+        /// hours. For example 'Paid vacation', 'Parental leave' or 'Home office'.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public PagedListResponse<TimeOffType> GetTimeOffTypes(GetTimeOffTypesRequest request)
+        {
+            var url = $"https://api.personio.de/v1/company/time-off-types?limit={request.Limit}&offset={request.Offset}";
+            return _handlePagedListRequest<TimeOffType, GetTimeOffTypesResponse>(url);
+        }
+
+        /// <summary>
         /// https://developer.personio.de/reference/get_company-time-offs
         /// 
         /// Fetches absence periods for absences tracked in days. The result 
@@ -337,6 +351,25 @@ namespace Personio.Api
         /// The result contains a list of absence periods.
         /// </summary>
         public async Task<PagedListResponse<TimeOffPeriod>> GetTimeOffsAsync(GetTimeOffsRequest request)
+        {
+            var url = _getTimeOffsUrl(request);
+            return await _handlePagedListRequestAsync<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
+        }
+
+        /// <summary>
+        /// https://developer.personio.de/reference/get_company-time-offs
+        /// 
+        /// Fetches absence periods for absences tracked in days. The result 
+        /// can be paginated and filtered by period and/or specific employee/employees.
+        /// The result contains a list of absence periods.
+        /// </summary>
+        public PagedListResponse<TimeOffPeriod> GetTimeOffs(GetTimeOffsRequest request)
+        {
+            var url = _getTimeOffsUrl(request);
+            return _handlePagedListRequest<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
+        }
+
+        private string _getTimeOffsUrl(GetTimeOffsRequest request)
         {
             var url = $"https://api.personio.de/v1/company/time-offs?limit={request.Limit}&offset={request.Offset}";
             if (request.StartDate.HasValue)
@@ -367,7 +400,7 @@ namespace Personio.Api
                 }
             }
 
-            return await _handlePagedListRequestAsync<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
+            return url;
         }
 
         /// <summary>
@@ -400,6 +433,35 @@ namespace Personio.Api
         }
 
         /// <summary>
+        /// https://developer.personio.de/reference/post_company-time-offs
+        /// 
+        /// Adds absence data for absence types tracked in days.
+        /// </summary>
+        public CreateResponse<TimeOffPeriod> CreateTimeOff(CreateTimeOffRequest request)
+        {
+            var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "half_day_start", request.HalfDayStart.ToString().ToLower() },
+                { "half_day_end", request.HalfDayEnd.ToString().ToLower() },
+                { "employee_id", request.EmployeeId.ToString() },
+                { "time_off_type_id", request.TimeOffTypeId.ToString() },
+                { "start_date", request.StartDate.ToString(Constants.DATE_FORMAT) },
+                { "end_date", request.EndDate.ToString(Constants.DATE_FORMAT) },
+                { "comment", request.Comment },
+                { "skip_approval", request.SkipApproval.ToString().ToLower() },
+            });
+
+            var response = _postClient.PostAsync("https://api.personio.de/v1/company/time-offs", content).GetAwaiter().GetResult();
+            var json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var createResponse = JsonConvert.DeserializeObject<CreateResponse<TypeAndAttributesObject<TimeOffPeriodAttributes>>>(json);
+            if (!createResponse.Success)
+            {
+                return CreateResponse.FromError<TimeOffPeriod>(createResponse);
+            }
+            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod());
+        }
+
+        /// <summary>
         /// https://developer.personio.de/reference/delete_company-time-offs-id
         /// 
         /// Deletes absence period data for absence types tracked in days.
@@ -410,6 +472,20 @@ namespace Personio.Api
         {
             var response = await _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}");
             var result = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<DeleteResponse>(result);
+        }
+
+        /// <summary>
+        /// https://developer.personio.de/reference/delete_company-time-offs-id
+        /// 
+        /// Deletes absence period data for absence types tracked in days.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public DeleteResponse DeleteTimeOff(int id)
+        {
+            var response = _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}").GetAwaiter().GetResult();
+            var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             return JsonConvert.DeserializeObject<DeleteResponse>(result);
         }
 
