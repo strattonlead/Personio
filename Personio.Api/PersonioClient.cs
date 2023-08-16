@@ -43,7 +43,7 @@ namespace Personio.Api
 
                 if (!_isValidToken)
                 {
-                    _token = AuthAsync().Result;
+                    _token = Auth();
                 }
 
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
@@ -97,6 +97,37 @@ namespace Personio.Api
             return _token;
         }
 
+        public string Auth()
+        {
+            return Auth(_options.ClientId, _options.ClientSecret);
+        }
+
+        public string Auth(string clientId, string clientSecret)
+        {
+            var request = new AuthRequest() { ClientId = clientId, ClientSecret = clientSecret };
+            return Auth(request);
+        }
+
+        /// <summary>
+        /// https://developer.personio.de/reference/post_auth
+        /// </summary>
+        /// <returns>Authentication token response</returns>
+        public string Auth(AuthRequest request)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var content = new StringContent(JsonConvert.SerializeObject(request));
+            content.Headers.ContentType.MediaType = "application/json";
+
+            var response = client.PostAsync("https://api.personio.de/v1/auth", content).GetAwaiter().GetResult();
+            var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var authResponse = JsonConvert.DeserializeObject<AuthResponse>(result);
+            _token = authResponse.Data?.Token;
+            _tokenValidUntilUtc = DateTime.UtcNow.AddDays(1).AddMinutes(-1);
+            return _token;
+        }
+
         #endregion
 
         #region Employees
@@ -106,6 +137,22 @@ namespace Personio.Api
         /// </summary>
         /// <returns>List Company Employees</returns>
         public async Task<PagedListResponse<Employee>> GetEmployeesAsync(GetEmployeesRequest request)
+        {
+            var url = _getEmployeesUrl(request);
+            return await _handlePagedListRequestAsync<Employee, GetEmployeesResponse>(url);
+        }
+
+        /// <summary>
+        /// https://developer.personio.de/reference/get_company-employees
+        /// </summary>
+        /// <returns>List Company Employees</returns>
+        public PagedListResponse<Employee> GetEmployees(GetEmployeesRequest request)
+        {
+            var url = _getEmployeesUrl(request);
+            return _handlePagedListRequest<Employee, GetEmployeesResponse>(url);
+        }
+
+        private string _getEmployeesUrl(GetEmployeesRequest request)
         {
             var url = $"https://api.personio.de/v1/company/employees?limit={request.Limit}&offset={request.Offset}";
             if (!string.IsNullOrWhiteSpace(request.Email))
@@ -125,8 +172,7 @@ namespace Personio.Api
                     url += $"&attributes[]={UrlEncoder.Default.Encode(attribute)}";
                 }
             }
-
-            return await _handlePagedListRequest<Employee, GetEmployeesResponse>(url);
+            return url;
         }
 
         /// <summary>
@@ -280,7 +326,7 @@ namespace Personio.Api
         public async Task<PagedListResponse<TimeOffType>> GetTimeOffTypesAsync(GetTimeOffTypesRequest request)
         {
             var url = $"https://api.personio.de/v1/company/time-off-types?limit={request.Limit}&offset={request.Offset}";
-            return await _handlePagedListRequest<TimeOffType, GetTimeOffTypesResponse>(url);
+            return await _handlePagedListRequestAsync<TimeOffType, GetTimeOffTypesResponse>(url);
         }
 
         /// <summary>
@@ -321,7 +367,7 @@ namespace Personio.Api
                 }
             }
 
-            return await _handlePagedListRequest<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
+            return await _handlePagedListRequestAsync<TimeOffPeriod, GetTimeOffPeriodsResponse>(url);
         }
 
         /// <summary>
@@ -471,7 +517,31 @@ namespace Personio.Api
 
         #region Helpers
 
-        private async Task<PagedListResponse<TItem>> _handlePagedListRequest<TItem, TResponse>(string url)
+        private PagedListResponse<TItem> _handlePagedListRequest<TItem, TResponse>(string url)
+            where TResponse : BasePagedListResponse<TItem>
+        {
+            var response = _getClient.GetAsync(url).GetAwaiter().GetResult();
+            var responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorData = JsonConvert.DeserializeObject<ErrorResponse>(responseContent);
+                return new PagedListResponse<TItem>()
+                {
+                    StatusCode = response.StatusCode,
+                    ReasonPhrase = response.ReasonPhrase,
+                    Error = errorData.Error
+                };
+            }
+            var data = JsonConvert.DeserializeObject<TResponse>(responseContent);
+            return new PagedListResponse<TItem>()
+            {
+                StatusCode = response.StatusCode,
+                ReasonPhrase = response.ReasonPhrase,
+                PagedList = data.ToPagedList()
+            };
+        }
+
+        private async Task<PagedListResponse<TItem>> _handlePagedListRequestAsync<TItem, TResponse>(string url)
             where TResponse : BasePagedListResponse<TItem>
         {
             var response = await _getClient.GetAsync(url);
