@@ -25,6 +25,7 @@ namespace Personio.Api
         private string _token { get; set; }
         private DateTime? _tokenValidUntilUtc { get; set; }
         private bool _isValidToken => !string.IsNullOrWhiteSpace(_token) && DateTime.UtcNow < _tokenValidUntilUtc;
+        public bool IsReady => _isValidToken;
 
         private HttpClient _getClient
         {
@@ -120,8 +121,8 @@ namespace Personio.Api
             var content = new StringContent(JsonConvert.SerializeObject(request));
             content.Headers.ContentType.MediaType = "application/json";
 
-            var response = client.PostAsync("https://api.personio.de/v1/auth", content).GetAwaiter().GetResult();
-            var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var response = client.PostAsync("https://api.personio.de/v1/auth", content).ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             var authResponse = JsonConvert.DeserializeObject<AuthResponse>(result);
             _token = authResponse.Data?.Token;
             _tokenValidUntilUtc = DateTime.UtcNow.AddDays(1).AddMinutes(-1);
@@ -427,9 +428,10 @@ namespace Personio.Api
             var createResponse = JsonConvert.DeserializeObject<CreateResponse<TypeAndAttributesObject<TimeOffPeriodAttributes>>>(json);
             if (!createResponse.Success)
             {
+                createResponse.StatusCode = response.StatusCode;
                 return CreateResponse.FromError<TimeOffPeriod>(createResponse);
             }
-            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod());
+            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod(), response.StatusCode);
         }
 
         /// <summary>
@@ -451,14 +453,15 @@ namespace Personio.Api
                 { "skip_approval", request.SkipApproval.ToString().ToLower() },
             });
 
-            var response = _postClient.PostAsync("https://api.personio.de/v1/company/time-offs", content).GetAwaiter().GetResult();
-            var json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var response = _postClient.PostAsync("https://api.personio.de/v1/company/time-offs", content).ConfigureAwait(false).GetAwaiter().GetResult();
+            var json = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             var createResponse = JsonConvert.DeserializeObject<CreateResponse<TypeAndAttributesObject<TimeOffPeriodAttributes>>>(json);
             if (!createResponse.Success)
             {
+                createResponse.StatusCode = response.StatusCode;
                 return CreateResponse.FromError<TimeOffPeriod>(createResponse);
             }
-            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod());
+            return CreateResponse.FromData(createResponse.Data.Attributes.ToTimeOffPeriod(), response.StatusCode);
         }
 
         /// <summary>
@@ -484,8 +487,8 @@ namespace Personio.Api
         /// <returns></returns>
         public DeleteResponse DeleteTimeOff(int id)
         {
-            var response = _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}").GetAwaiter().GetResult();
-            var result = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var response = _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}").ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             return JsonConvert.DeserializeObject<DeleteResponse>(result);
         }
 
@@ -596,8 +599,8 @@ namespace Personio.Api
         private PagedListResponse<TItem> _handlePagedListRequest<TItem, TResponse>(string url)
             where TResponse : BasePagedListResponse<TItem>
         {
-            var response = _getClient.GetAsync(url).GetAwaiter().GetResult();
-            var responseContent = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            var response = _getClient.GetAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+            var responseContent = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             if (!response.IsSuccessStatusCode)
             {
                 var errorData = JsonConvert.DeserializeObject<ErrorResponse>(responseContent);
