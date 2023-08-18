@@ -474,8 +474,9 @@ namespace Personio.Api
         public async Task<DeleteResponse> DeleteTimeOffAsync(int id)
         {
             var response = await _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}");
-            var result = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<DeleteResponse>(result);
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<DeleteResponse>(json);
+            return result;
         }
 
         /// <summary>
@@ -488,8 +489,10 @@ namespace Personio.Api
         public DeleteResponse DeleteTimeOff(int id)
         {
             var response = _getClient.DeleteAsync($"https://api.personio.de/v1/company/time-offs/{id}").ConfigureAwait(false).GetAwaiter().GetResult();
-            var result = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
-            return JsonConvert.DeserializeObject<DeleteResponse>(result);
+            var json = response.Content.ReadAsStringAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            var result = JsonConvert.DeserializeObject<DeleteResponse>(json);
+            result.StatusCode = response.StatusCode;
+            return result;
         }
 
         /// <summary>
