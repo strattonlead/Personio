@@ -18,8 +18,13 @@ namespace Personio.Tests
         [Fact]
         public void AbsencesTest()
         {
-            var offTypesResponse = PersonioClient.GetTimeOffsAsync(new GetTimeOffsRequest() { Limit = 10 }).Result;
+            var offTypesResponse = PersonioClient.GetTimeOffsAsync(new GetTimeOffsRequest() { StartDate = DateTime.Now.Date, EndDate = DateTime.Now.AddDays(180).Date, EmployeeIds = new int[] { 17217970, 17218013 }, Limit = 10 }).Result;
             Assert.NotNull(offTypesResponse);
+
+            var res = PersonioClient.DeleteTimeOffAsync(offTypesResponse.PagedList.Data.FirstOrDefault().Id).Result;
+            var offTypesResponse2 = PersonioClient.GetTimeOffsAsync(new GetTimeOffsRequest() { StartDate = DateTime.Now.Date, EndDate = DateTime.Now.AddDays(180).Date, EmployeeIds = new int[] { 17217970, 17218013 }, Limit = 10 }).Result;
+
+            Assert.NotEqual(offTypesResponse.PagedList.Data.Count, offTypesResponse2.PagedList.Data.Count);
         }
 
         [Fact]

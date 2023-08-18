@@ -378,19 +378,19 @@ namespace Personio.Api
                 url += $"&start_date={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
             }
 
-            if (request.StartDate.HasValue)
+            if (request.EndDate.HasValue)
             {
-                url += $"&end_date={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+                url += $"&end_date={request.EndDate.Value.ToString(Constants.DATE_FORMAT)}";
             }
 
-            if (request.StartDate.HasValue)
+            if (request.UpdatedFrom.HasValue)
             {
-                url += $"&updated_from={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+                url += $"&updated_from={request.UpdatedFrom.Value.ToString(Constants.DATE_FORMAT)}";
             }
 
-            if (request.StartDate.HasValue)
+            if (request.UpdatedTo.HasValue)
             {
-                url += $"&updated_to={request.StartDate.Value.ToString(Constants.DATE_FORMAT)}";
+                url += $"&updated_to={request.UpdatedTo.Value.ToString(Constants.DATE_FORMAT)}";
             }
 
             if (request.EmployeeIds != null && request.EmployeeIds.Any())
