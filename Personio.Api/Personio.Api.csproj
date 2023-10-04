@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
-    <ImplicitUsings>disable</ImplicitUsings>
-    <Nullable>disable</Nullable>
+	<TargetFrameworks>net472;net6.0</TargetFrameworks>
+	<ImplicitUsings>disable</ImplicitUsings>
+	<Nullable>disable</Nullable>
 	<PackageId>CreateIf.Personio.Api</PackageId>
-	<Version>1.0.8</Version>
-	<PackageVersion>1.0.8</PackageVersion>
+	<Version>1.0.9</Version>
+	<PackageVersion>1.0.9</PackageVersion>
 	<Authors>Arndt Bieberstein</Authors>
 	<Company>createIF Labs GmbH</Company>
 	<EnablePackageValidation>true</EnablePackageValidation>
@@ -26,7 +26,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	  <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1">
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

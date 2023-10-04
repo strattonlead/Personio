@@ -614,7 +614,10 @@ namespace Personio.Api
                     Error = errorData.Error
                 };
             }
-            var data = JsonConvert.DeserializeObject<TResponse>(responseContent);
+            var data = JsonConvert.DeserializeObject<TResponse>(responseContent, new JsonSerializerSettings()
+            {
+                NullValueHandling = NullValueHandling.Ignore
+            });
             return new PagedListResponse<TItem>()
             {
                 StatusCode = response.StatusCode,

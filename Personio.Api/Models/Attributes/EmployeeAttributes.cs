@@ -18,13 +18,13 @@ namespace Personio.Api.Models.Attributes
         public AttributeObject<string> Email { get; set; }
 
         public static implicit operator Employee(EmployeeAttributes x)
-            => new Employee()
+            => x != null ? new Employee()
             {
                 Id = x.Id,
                 FirstName = x.FirstName,
                 LastName = x.LastName,
                 Email = x.Email
-            };
+            } : null;
 
         public Employee ToEmployee() => (Employee)this;
 
