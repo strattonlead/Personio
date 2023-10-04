@@ -633,7 +633,14 @@ namespace Personio.Api
                 {
                     StatusCode = response.StatusCode,
                     ReasonPhrase = response.ReasonPhrase,
-                    Error = new Error() { Message = e.Message },
+                    Error = new Error()
+                    {
+                        Message = e.Message,
+                        ErrorData = new Dictionary<string, object>()
+                        {
+                            { "StackTrace", e.StackTrace }
+                        }
+                    },
                     Raw = responseContent
                 };
             }

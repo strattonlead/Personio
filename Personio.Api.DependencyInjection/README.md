@@ -1,2 +1,2 @@
-# Timocom
-sevDesk API
+# Personio
+Personio API beta

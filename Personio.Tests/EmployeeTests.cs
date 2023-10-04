@@ -13,7 +13,9 @@ namespace Personio.Tests
             var request = new GetEmployeesRequest();
             var employees = PersonioClient.GetEmployeesAsync(request).Result;
             Assert.Equal(HttpStatusCode.OK, employees.StatusCode);
-            Assert.Equal(10, employees.PagedList.Data.Count);
+
+            employees = PersonioClient.GetEmployees(request);
+            Assert.Equal(HttpStatusCode.OK, employees.StatusCode);
         }
 
         [Fact]

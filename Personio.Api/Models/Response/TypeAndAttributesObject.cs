@@ -25,7 +25,7 @@ namespace Personio.Api.Models.Response
         [JsonProperty(PropertyName = "universal_id")]
         public string UniversalId { get; set; }
 
-        public static implicit operator T(AttributeObject<T> attributeObject) => attributeObject.Value;
+        public static implicit operator T(AttributeObject<T> attributeObject) => attributeObject != null ? attributeObject.Value : default;
     }
 
 
