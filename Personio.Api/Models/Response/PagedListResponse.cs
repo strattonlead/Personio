@@ -9,5 +9,6 @@ namespace Personio.Api.Models.Response
         public string ReasonPhrase { get; set; }
         public PagedList<T> PagedList { get; set; }
         public Error Error { get; set; }
+        public string Raw { get; set; }
     }
 }

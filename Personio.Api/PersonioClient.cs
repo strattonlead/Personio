@@ -614,16 +614,29 @@ namespace Personio.Api
                     Error = errorData.Error
                 };
             }
-            var data = JsonConvert.DeserializeObject<TResponse>(responseContent, new JsonSerializerSettings()
+            try
             {
-                NullValueHandling = NullValueHandling.Ignore
-            });
-            return new PagedListResponse<TItem>()
+                var data = JsonConvert.DeserializeObject<TResponse>(responseContent, new JsonSerializerSettings()
+                {
+                    NullValueHandling = NullValueHandling.Ignore
+                });
+                return new PagedListResponse<TItem>()
+                {
+                    StatusCode = response.StatusCode,
+                    ReasonPhrase = response.ReasonPhrase,
+                    PagedList = data.ToPagedList()
+                };
+            }
+            catch (Exception e)
             {
-                StatusCode = response.StatusCode,
-                ReasonPhrase = response.ReasonPhrase,
-                PagedList = data.ToPagedList()
-            };
+                return new PagedListResponse<TItem>()
+                {
+                    StatusCode = response.StatusCode,
+                    ReasonPhrase = response.ReasonPhrase,
+                    Error = new Error() { Message = e.Message },
+                    Raw = responseContent
+                };
+            }
         }
 
         private async Task<PagedListResponse<TItem>> _handlePagedListRequestAsync<TItem, TResponse>(string url)
